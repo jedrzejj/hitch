@@ -756,6 +756,8 @@ static sslctx *
 sni_lookup(const char *servername, const sni_name *sn_tab)
 {
 	const sni_name *sn;
+	char *p = (char *)servername;
+	for ( ; *p; ++p) *p = tolower(*p);
 
 	HASH_FIND_STR(sn_tab, servername, sn);
 	if (sn == NULL) {
