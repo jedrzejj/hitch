@@ -468,6 +468,47 @@ do {                                                                            
   bkt = hashv & (num_bkts-1U);                                                   \
 } while(0)
 
+#define HASH_JEN_I(key,keylen,num_bkts,hashv,bkt)                                \
+do {                                                                             \
+  unsigned _hj_i,_hj_j,_hj_k;                                                    \
+  unsigned const char *_hj_key=(unsigned const char*)(key);                      \
+  hashv = 0xfeedbeefu;                                                           \
+  _hj_i = _hj_j = 0x9e3779b9u;                                                   \
+  _hj_k = (unsigned)(keylen);                                                    \
+  while (_hj_k >= 12U) {                                                         \
+    _hj_i +=    ((_hj_key[0]|0x20) + ( (unsigned)(_hj_key[1]|0x20) << 8 )        \
+        + ( (unsigned)(_hj_key[2]|0x20) << 16 )                                  \
+        + ( (unsigned)(_hj_key[3]|0x20) << 24 ) );                               \
+    _hj_j +=    ((_hj_key[4]|0x20) + ( (unsigned)(_hj_key[5]|0x20) << 8 )        \
+        + ( (unsigned)(_hj_key[6]|0x20) << 16 )                                  \
+        + ( (unsigned)(_hj_key[7]|0x20) << 24 ) );                               \
+    hashv += ((_hj_key[8]|0x20) + ( (unsigned)(_hj_key[9]|0x20) << 8 )           \
+        + ( (unsigned)(_hj_key[10]|0x20) << 16 )                                 \
+        + ( (unsigned)(_hj_key[11]|0x20) << 24 ) );                              \
+                                                                                 \
+     HASH_JEN_MIX(_hj_i, _hj_j, hashv);                                          \
+                                                                                 \
+     _hj_key += 12;                                                              \
+     _hj_k -= 12U;                                                               \
+  }                                                                              \
+  hashv += (unsigned)(keylen);                                                   \
+  switch ( _hj_k ) {                                                             \
+     case 11: hashv += ( (unsigned)(_hj_key[10]|0x20) << 24 ); /* FALLTHROUGH */ \
+     case 10: hashv += ( (unsigned)(_hj_key[9]|0x20) << 16 );  /* FALLTHROUGH */ \
+     case 9:  hashv += ( (unsigned)(_hj_key[8]|0x20) << 8 );   /* FALLTHROUGH */ \
+     case 8:  _hj_j += ( (unsigned)(_hj_key[7]|0x20) << 24 );  /* FALLTHROUGH */ \
+     case 7:  _hj_j += ( (unsigned)(_hj_key[6]|0x20) << 16 );  /* FALLTHROUGH */ \
+     case 6:  _hj_j += ( (unsigned)(_hj_key[5]|0x20) << 8 );   /* FALLTHROUGH */ \
+     case 5:  _hj_j += (_hj_key[4]|0x20);                      /* FALLTHROUGH */ \
+     case 4:  _hj_i += ( (unsigned)(_hj_key[3]|0x20) << 24 );  /* FALLTHROUGH */ \
+     case 3:  _hj_i += ( (unsigned)(_hj_key[2]|0x20) << 16 );  /* FALLTHROUGH */ \
+     case 2:  _hj_i += ( (unsigned)(_hj_key[1]|0x20) << 8 );   /* FALLTHROUGH */ \
+     case 1:  _hj_i += (_hj_key[0]|0x20);                                        \
+  }                                                                              \
+  HASH_JEN_MIX(_hj_i, _hj_j, hashv);                                             \
+  bkt = hashv & (num_bkts-1U);                                                   \
+} while(0)
+
 /* The Paul Hsieh hash function */
 #undef get16bits
 #if (defined(__GNUC__) && defined(__i386__)) || defined(__WATCOMC__)             \
@@ -605,7 +646,7 @@ do {                                                                   \
 #endif  /* HASH_USING_NO_STRICT_ALIASING */
 
 /* key comparison function; return 0 if keys equal */
-#define HASH_KEYCMP(a,b,len) memcmp(a,b,(unsigned long)(len))
+#define HASH_KEYCMP(a,b,len) strncasecmp(a,b,(unsigned long)(len))
 
 /* iterate over items in a known bucket to find desired item */
 #define HASH_FIND_IN_BKT(tbl,hh,head,keyptr,keylen_in,out)                       \

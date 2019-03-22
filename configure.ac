@@ -72,6 +72,16 @@ if test x"$use_shctx" != xno; then
 fi
 AM_CONDITIONAL(USE_SHCTX, test xno != x"$use_shctx")
 
+AC_ARG_ENABLE(lowercasehash,
+    AC_HELP_STRING([--enable-lowercasehash],
+		   [Enable lowercase hashing function (for SNI servername). (default is off)]),
+    [use_lchash="$enableval"],
+    [use_lchash=no])
+if test x"$use_lchash" != xno; then
+  AC_DEFINE([HASH_FUNCTION], [HASH_JEN_I], [lowercase hash is enabled])
+fi
+AM_CONDITIONAL(USE_LCHASH, test xno != x"$use_LCHASH")
+
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h unistd.h])
 
